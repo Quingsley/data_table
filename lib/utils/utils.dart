@@ -1,7 +1,11 @@
 /// utility class
 class Utils {
+  /// [modelBuilder] method that returns a list of [T]
+  /// from a list of [M] and a builder function
   static List<T> modelBuilder<M, T>(
-          List<M> models, T Function(int index, M model) builder) =>
+    List<M> models,
+    T Function(int index, M model) builder,
+  ) =>
       models
           .asMap()
           .map<int, T>((index, model) => MapEntry(index, builder(index, model)))
@@ -9,32 +13,31 @@ class Utils {
           .toList();
 }
 
-// rows
-List<Student> data = [
-  Student(name: 'Sarah', age: 19, role: 'Class Representative'),
-  Student(name: 'Janine', age: 43, role: 'Professor'),
-  Student(name: 'William', age: 27, role: 'Associate Professor')
-];
-
-// columns
-List<String> columns = ['name', 'age', 'role'];
-
+/// [ProductColumns] enum
 enum ProductColumns {
+  /// product Name column
   productName,
+
+  /// quantity column
   quantity,
+
+  /// buying price column
   buyingPrice,
+
+  /// selling price column
   sellingPrice,
 }
 
-class Student {
-  final String name;
-  final int age;
-  final String role;
-  bool isSelected;
-
-  Student(
-      {required this.name,
-      required this.age,
-      required this.role,
-      this.isSelected = false});
+/// [getColumnName] method that returns the human readable column name
+String getColumnName(ProductColumns column) {
+  switch (column) {
+    case ProductColumns.buyingPrice:
+      return 'Buying Price';
+    case ProductColumns.quantity:
+      return 'Quantity';
+    case ProductColumns.sellingPrice:
+      return 'Selling Price';
+    case ProductColumns.productName:
+      return 'Product Name';
+  }
 }
