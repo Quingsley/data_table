@@ -13,8 +13,8 @@ class Utils {
           .toList();
 }
 
-/// [ProductColumns] enum
-enum ProductColumns {
+/// [ProductColumnsEnum] enum
+enum ProductColumnsEnum {
   /// product Name column
   productName,
 
@@ -29,15 +29,56 @@ enum ProductColumns {
 }
 
 /// [getColumnName] method that returns the human readable column name
-String getColumnName(ProductColumns column) {
+String getColumnName(String column) {
   switch (column) {
-    case ProductColumns.buyingPrice:
+    case 'buyingPrice':
       return 'Buying Price';
-    case ProductColumns.quantity:
+    case 'quantity':
       return 'Quantity';
-    case ProductColumns.sellingPrice:
+    case 'sellingPrice':
       return 'Selling Price';
-    case ProductColumns.productName:
+    case 'productName':
       return 'Product Name';
+    default:
+      return '';
   }
+}
+
+/// [ProductCategoryEnum] enum
+enum ProductCategoryEnum {
+  /// food category
+  food,
+
+  /// drinks category
+  drinks,
+
+  /// cutlery category
+  cutlery,
+}
+
+/// [ProductSubCategoryEnum] enum
+enum ProductSubCategoryEnum {
+  /// flour sub-category
+  flour,
+
+  /// sugar sub-category
+  sugar,
+
+  /// oil sub-category
+  oil,
+
+  /// spoons sub-category
+  spoons,
+
+  /// water sub-category
+  water,
+
+  /// snacks sub-category
+  snacks,
+
+  /// beverages sub-category
+  beverages,
+
+  /// salt sub-category
+  salt,
 }
