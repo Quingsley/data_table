@@ -1,6 +1,7 @@
 import 'package:data_table/features/bulkProductUpload/data/models/bulk_product_model.dart';
 import 'package:data_table/features/bulkProductUpload/presentation/cubit/bulk_product_upload_cubit.dart';
-import 'package:data_table/features/bulkProductUpload/presentation/cubit/is_ascending_cubit.dart';
+import 'package:data_table/features/bulkProductUpload/presentation/cubit/columns_cubit.dart';
+import 'package:data_table/features/bulkProductUpload/presentation/cubit/ui_app_states_cubit.dart';
 import 'package:data_table/features/bulkProductUpload/presentation/widgets/custom_dialog.dart';
 import 'package:data_table/features/bulkProductUpload/presentation/widgets/custom_scroll_view.dart';
 import 'package:data_table/features/bulkProductUpload/presentation/widgets/table_header.dart';
@@ -27,6 +28,8 @@ class _BulkProductUploadPageState extends State<BulkProductUploadPage> {
   @override
   Widget build(BuildContext context) {
     final isAscending = context.watch<IsAscendingCubit>().state;
+    final columns = context.watch<ColumnsCubit>().state;
+    final showCheckBoxColumn = context.watch<CheckBoxSelectionCubit>().state;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inventory Data Table'),
@@ -50,6 +53,7 @@ class _BulkProductUploadPageState extends State<BulkProductUploadPage> {
                   } else if (state is BulkProductUploadLoaded) {
                     return CustomScroll(
                       child: DataTable(
+                        showCheckboxColumn: showCheckBoxColumn,
                         decoration: BoxDecoration(
                           borderRadius: const BorderRadius.only(
                             bottomLeft: Radius.circular(10),
@@ -66,8 +70,9 @@ class _BulkProductUploadPageState extends State<BulkProductUploadPage> {
                               .toggleSelectAll();
                         },
                         columns: getColumns(
-                          columns:
-                              ProductColumns.values.map((e) => e.name).toList(),
+                          columns: columns
+                              .where((column) => column.isVisible)
+                              .toList(),
                           products: state.products,
                           isAscending: isAscending,
                         ),
@@ -86,19 +91,19 @@ class _BulkProductUploadPageState extends State<BulkProductUploadPage> {
   }
 
   List<DataColumn> getColumns({
-    required List<String> columns,
+    required List<ProductColumn> columns,
     required List<BulkProductModel> products,
     required bool isAscending,
   }) {
     return Utils.modelBuilder(
       columns,
       (index, columnName) => DataColumn(
-        numeric: columnName == ProductColumns.buyingPrice.name ||
-            columnName == ProductColumns.sellingPrice.name,
+        numeric: columnName.name == ProductColumnsEnum.buyingPrice.name ||
+            columnName.name == ProductColumnsEnum.sellingPrice.name,
         onSort: (columnIndex, ascending) {
           BlocProvider.of<BulkProductUploadCubit>(context).sortColumn(
             isAscending: isAscending,
-            ProductColumns.values[columnIndex],
+            ProductColumnsEnum.values[columnIndex],
           );
           BlocProvider.of<IsAscendingCubit>(context).toggle();
         },
@@ -106,7 +111,7 @@ class _BulkProductUploadPageState extends State<BulkProductUploadPage> {
           child: Row(
             children: [
               Text(
-                getColumnName(ProductColumns.values[index]),
+                getColumnName(columns[index].name),
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                 ),
@@ -122,14 +127,17 @@ class _BulkProductUploadPageState extends State<BulkProductUploadPage> {
   }
 
   List<DataRow> getRows(List<BulkProductModel> products) {
+    final visibleColumns =
+        context.watch<ColumnsCubit>().state.where((column) => column.isVisible);
     return products.map((product) {
-      final cells = [
-        product.productName,
-        product.quantity,
-        product.buyingPrice,
-        product.sellingPrice,
-      ];
-
+      final cells = {
+        'productName': product.productName,
+        'quantity': product.quantity,
+        'buyingPrice': product.buyingPrice,
+        'sellingPrice': product.sellingPrice,
+      };
+      final visibleCells =
+          visibleColumns.map((column) => cells[column.name]).toList();
       return DataRow(
         selected: product.isSelected,
         onSelectChanged: (value) {
@@ -137,15 +145,15 @@ class _BulkProductUploadPageState extends State<BulkProductUploadPage> {
               .toggleSelectedProduct(product);
         },
         cells: Utils.modelBuilder(
-          cells,
+          visibleCells,
           (index, model) => DataCell(
             Text(model.toString()),
-            showEditIcon: index == ProductColumns.productName.index ||
-                index == ProductColumns.quantity.index,
+            showEditIcon: index == ProductColumnsEnum.productName.index ||
+                index == ProductColumnsEnum.quantity.index,
             onTap: () async {
               final updatedProduct = await updateProductDialog(
                 context: context,
-                hintText: cells[index].toString(),
+                hintText: visibleCells[index].toString(),
                 product: product,
                 cellIndex: index,
               );
