@@ -53,7 +53,7 @@ class TableHeader extends StatelessWidget {
                                   '${subCategory.name[0].toUpperCase()}${subCategory.name.substring(1)}',
                                 ),
                                 value: subCategory.isSelected,
-                                onChanged: (value) async {
+                                onChanged: (value) {
                                   BlocProvider.of<CategoriesCubit>(context)
                                       .toggleSubCategories(subCategory);
                                   if (value != null) {
@@ -66,10 +66,9 @@ class TableHeader extends StatelessWidget {
                                     if (value == false) {
                                       // add back the whole  products back
                                       //to the state
-                                      await BlocProvider.of<
-                                          BulkProductUploadCubit>(
+                                      BlocProvider.of<BulkProductUploadCubit>(
                                         context,
-                                      ).getProducts();
+                                      ).reset();
                                     }
                                   }
                                 },
@@ -131,6 +130,17 @@ class TableHeader extends StatelessWidget {
                     hintText: 'Search By Product Name',
                     prefixIcon: const Icon(Icons.search),
                   ),
+                  onChanged: (searchTerm) {
+                    // reset the state if the search term is empty after search
+
+                    if (searchTerm.trim().isEmpty) {
+                      BlocProvider.of<BulkProductUploadCubit>(context).reset();
+                    }
+                    if (searchTerm.trim().isNotEmpty) {
+                      BlocProvider.of<BulkProductUploadCubit>(context)
+                          .searchProductByName(searchTerm);
+                    }
+                  },
                 ),
               ),
             ],
