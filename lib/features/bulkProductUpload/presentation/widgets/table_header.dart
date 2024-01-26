@@ -1,5 +1,11 @@
+import 'package:data_table/features/bulkProductUpload/presentation/cubit/bulk_product_upload_cubit.dart';
+import 'package:data_table/features/bulkProductUpload/presentation/cubit/categories_cubit.dart';
+import 'package:data_table/features/bulkProductUpload/presentation/cubit/columns_cubit.dart';
+import 'package:data_table/features/bulkProductUpload/presentation/cubit/ui_app_states_cubit.dart';
+import 'package:data_table/features/bulkProductUpload/presentation/widgets/menu_pop_up.dart';
 import 'package:data_table/utils/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// [TableHeader] is a [StatelessWidget] that displays
 /// the header of the [DataTable] with various menu options
@@ -9,6 +15,10 @@ class TableHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final columns = context.watch<ColumnsCubit>();
+    final showCheckBoxColumn = context.watch<CheckBoxSelectionCubit>().state;
+    // final products = context.read<BulkProductUploadCubit>().products;
+    final categories = context.watch<CategoriesCubit>().state;
     return Container(
       width: MediaQuery.of(context).size.width,
       height: 200,
@@ -29,48 +39,76 @@ class TableHeader extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              OutlinedButton.icon(
-                onPressed: () {},
-                style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                label: const Text('Filter'),
-                icon: const Icon(Icons.filter_list),
+              CustomMenuPopUp(
+                menuChildren: categories
+                    .map(
+                      (c) => ExpansionTile(
+                        initiallyExpanded: true,
+                        title: Text(c.name.toUpperCase()),
+                        children: c.subCategories
+                            .map(
+                              (subCategory) => CheckboxListTile(
+                                contentPadding: const EdgeInsets.all(10),
+                                title: Text(
+                                  '${subCategory.name[0].toUpperCase()}${subCategory.name.substring(1)}',
+                                ),
+                                value: subCategory.isSelected,
+                                onChanged: (value) async {
+                                  BlocProvider.of<CategoriesCubit>(context)
+                                      .toggleSubCategories(subCategory);
+                                  if (value != null) {
+                                    BlocProvider.of<BulkProductUploadCubit>(
+                                      context,
+                                    ).filterProducts(
+                                      subCategory,
+                                      isSelected: value,
+                                    );
+                                    if (value == false) {
+                                      // add back the whole  products back
+                                      //to the state
+                                      await BlocProvider.of<
+                                          BulkProductUploadCubit>(
+                                        context,
+                                      ).getProducts();
+                                    }
+                                  }
+                                },
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    )
+                    .toList(),
+                title: 'Categories',
+                icon: Icons.filter_list,
+                label: 'Filters',
               ),
-              MenuAnchor(
-                alignmentOffset: const Offset(0, 5),
-                style: const MenuStyle(
-                  padding: MaterialStatePropertyAll(
-                    EdgeInsets.all(12),
-                  ),
-                  elevation: MaterialStatePropertyAll<double>(5),
-                ),
+              CustomMenuPopUp(
                 menuChildren: [
-                  Text('Show Columns'.toUpperCase()),
-                  ...ProductColumns.values.map(
+                  ...columns.state.map(
                     (column) => CheckboxListTile(
-                      title: Text(getColumnName(column)),
-                      value: true,
-                      onChanged: (bool? value) {},
+                      title: Text(getColumnName(column.name)),
+                      value: column.isVisible,
+                      enabled:
+                          // prevents from having columns < 1
+                          column.name != ProductColumnsEnum.productName.name,
+                      onChanged: (_) {
+                        BlocProvider.of<ColumnsCubit>(context)
+                            .toggleColumn(column);
+                      },
                     ),
+                  ),
+                  CheckboxListTile(
+                    value: showCheckBoxColumn,
+                    onChanged: (_) {
+                      BlocProvider.of<CheckBoxSelectionCubit>(context).toggle();
+                    },
+                    title: const Text('Checkbox Selection'),
                   ),
                 ],
-                builder: (context, controller, child) {
-                  return OutlinedButton.icon(
-                    onPressed: () => controller.isOpen
-                        ? controller.close()
-                        : controller.open(),
-                    style: OutlinedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    label: const Text('Columns'),
-                    icon: const Icon(Icons.visibility),
-                  );
-                },
+                title: 'Show Columns',
+                icon: Icons.visibility,
+                label: 'Columns',
               ),
             ],
           ),
