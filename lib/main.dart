@@ -1,6 +1,7 @@
 import 'package:data_table/features/bulkProductUpload/presentation/cubit/bulk_product_upload_cubit.dart';
-import 'package:data_table/features/bulkProductUpload/presentation/cubit/is_ascending_cubit.dart';
-import 'package:data_table/features/bulkProductUpload/presentation/cubit/selected_columns_cubit.dart';
+import 'package:data_table/features/bulkProductUpload/presentation/cubit/categories_cubit.dart';
+import 'package:data_table/features/bulkProductUpload/presentation/cubit/columns_cubit.dart';
+import 'package:data_table/features/bulkProductUpload/presentation/cubit/ui_app_states_cubit.dart';
 import 'package:data_table/features/bulkProductUpload/presentation/pages/bulk_product_upload_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,6 +29,12 @@ class MainApp extends StatelessWidget {
           ),
           BlocProvider(
             create: (_) => ColumnsCubit(),
+          ),
+          BlocProvider(
+            create: (_) => CheckBoxSelectionCubit(),
+          ),
+          BlocProvider(
+            create: (_) => CategoriesCubit(),
           ),
         ],
         child: const BulkProductUploadPage(),
