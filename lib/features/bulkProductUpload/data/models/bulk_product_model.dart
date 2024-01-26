@@ -1,3 +1,4 @@
+import 'package:data_table/features/bulkProductUpload/data/models/product_category_model.dart';
 import 'package:equatable/equatable.dart';
 
 /// [BulkProductModel] is a model class that holds the data
@@ -9,6 +10,7 @@ class BulkProductModel extends Equatable {
     required this.quantity,
     required this.buyingPrice,
     required this.sellingPrice,
+    required this.category,
     required this.id,
     this.isSelected = false,
   });
@@ -31,6 +33,9 @@ class BulkProductModel extends Equatable {
   /// whether the product is selected or not
   final bool isSelected;
 
+  /// category of the product
+  final ProductCategory category;
+
   /// returns a copy of the [BulkProductModel] with the
   /// specified fields replaced with the new values
   BulkProductModel copyWith({
@@ -39,6 +44,7 @@ class BulkProductModel extends Equatable {
     double? buyingPrice,
     double? sellingPrice,
     bool? isSelected,
+    ProductCategory? category,
   }) {
     return BulkProductModel(
       productName: productName ?? this.productName,
@@ -47,6 +53,7 @@ class BulkProductModel extends Equatable {
       sellingPrice: sellingPrice ?? this.sellingPrice,
       isSelected: isSelected ?? this.isSelected,
       id: id,
+      category: category ?? this.category,
     );
   }
 
