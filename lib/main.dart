@@ -1,12 +1,14 @@
+import 'package:data_table/bloc_obsever.dart';
 import 'package:data_table/features/bulkProductUpload/presentation/cubit/bulk_product_upload_cubit.dart';
 import 'package:data_table/features/bulkProductUpload/presentation/cubit/categories_cubit.dart';
 import 'package:data_table/features/bulkProductUpload/presentation/cubit/columns_cubit.dart';
 import 'package:data_table/features/bulkProductUpload/presentation/cubit/ui_app_states_cubit.dart';
-import 'package:data_table/features/bulkProductUpload/presentation/pages/bulk_product_upload_page.dart';
+import 'package:data_table/features/bulkProductUpload/presentation/pages/pluto_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() {
+  Bloc.observer = AppBlocObserver();
   runApp(const MainApp());
 }
 
@@ -37,7 +39,7 @@ class MainApp extends StatelessWidget {
             create: (_) => CategoriesCubit(),
           ),
         ],
-        child: const BulkProductUploadPage(),
+        child: const PlutoPage(), //BulkProductUploadPage(),
       ),
     );
   }
