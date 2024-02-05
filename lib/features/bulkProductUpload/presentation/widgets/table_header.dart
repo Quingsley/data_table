@@ -10,8 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 
-/// [TableHeader] is a [StatelessWidget] that displays
-/// the header of the [DataTable] with various menu options
+/// [TableHeader] is a [StatefulWidget] that displays
+/// the header of the [PlutoGrid] with various menu options
 class TableHeader extends StatefulWidget {
   /// constructor for [TableHeader]
   const TableHeader({required this.stateManager, super.key});
