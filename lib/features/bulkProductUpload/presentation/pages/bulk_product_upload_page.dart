@@ -4,7 +4,6 @@ import 'package:data_table/features/bulkProductUpload/presentation/cubit/columns
 import 'package:data_table/features/bulkProductUpload/presentation/cubit/ui_app_states_cubit.dart';
 import 'package:data_table/features/bulkProductUpload/presentation/widgets/custom_dialog.dart';
 import 'package:data_table/features/bulkProductUpload/presentation/widgets/custom_scroll_view.dart';
-import 'package:data_table/features/bulkProductUpload/presentation/widgets/table_header.dart';
 import 'package:data_table/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -41,7 +40,7 @@ class _BulkProductUploadPageState extends State<BulkProductUploadPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const TableHeader(),
+              // const TableHeader(),
               BlocBuilder<BulkProductUploadCubit, BulkProductUploadState>(
                 builder: (context, state) {
                   if (state is BulkProductUploadInitial) {
@@ -65,10 +64,10 @@ class _BulkProductUploadPageState extends State<BulkProductUploadPage> {
                         columnSpacing: 28,
                         horizontalMargin: 12,
                         sortAscending: isAscending,
-                        onSelectAll: (val) {
-                          BlocProvider.of<BulkProductUploadCubit>(context)
-                              .toggleSelectAll();
-                        },
+                        // onSelectAll: (val) {
+                        //   BlocProvider.of<BulkProductUploadCubit>(context)
+                        //       .toggleSelectAll();
+                        // },
                         columns: getColumns(
                           columns: columns
                               .where((column) => column.isVisible)
@@ -100,13 +99,13 @@ class _BulkProductUploadPageState extends State<BulkProductUploadPage> {
       (index, columnName) => DataColumn(
         numeric: columnName.name == ProductColumnsEnum.buyingPrice.name ||
             columnName.name == ProductColumnsEnum.sellingPrice.name,
-        onSort: (columnIndex, ascending) {
-          BlocProvider.of<BulkProductUploadCubit>(context).sortColumn(
-            isAscending: isAscending,
-            ProductColumnsEnum.values[columnIndex],
-          );
-          BlocProvider.of<IsAscendingCubit>(context).toggle();
-        },
+        // onSort: (columnIndex, ascending) {
+        //   BlocProvider.of<BulkProductUploadCubit>(context).sortColumn(
+        //     isAscending: isAscending,
+        //     ProductColumnsEnum.values[columnIndex],
+        //   );
+        //   BlocProvider.of<IsAscendingCubit>(context).toggle();
+        // },
         label: Expanded(
           child: Row(
             children: [
