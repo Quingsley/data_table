@@ -27,28 +27,36 @@ class CustomMenuPopUp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MenuAnchor(
-      alignmentOffset: const Offset(0, 5),
-      style: const MenuStyle(
-        padding: MaterialStatePropertyAll(
-          EdgeInsets.all(12),
-        ),
-        elevation: MaterialStatePropertyAll<double>(5),
-      ),
-      menuChildren: menuChildren,
-      builder: (context, controller, child) {
-        return OutlinedButton.icon(
-          onPressed: () =>
-              controller.isOpen ? controller.close() : controller.open(),
-          style: OutlinedButton.styleFrom(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+    return Expanded(
+      child: MenuAnchor(
+        alignmentOffset: const Offset(0, 5),
+        style: const MenuStyle(
+          padding: MaterialStatePropertyAll(
+            EdgeInsets.all(12),
           ),
-          label: Text(label.toUpperCase()),
-          icon: Icon(icon),
-        );
-      },
+          elevation: MaterialStatePropertyAll<double>(5),
+        ),
+        menuChildren: menuChildren,
+        builder: (context, controller, child) {
+          return OutlinedButton.icon(
+            onPressed: () =>
+                controller.isOpen ? controller.close() : controller.open(),
+            style: OutlinedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            label: Text(
+              label.toUpperCase(),
+              style: const TextStyle(fontSize: 10),
+            ),
+            icon: Icon(
+              icon,
+              size: 22,
+            ),
+          );
+        },
+      ),
     );
   }
 }
