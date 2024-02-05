@@ -1,123 +1,44 @@
+import 'package:data_table/features/bulkProductUpload/data/models/bulk_product_model.dart';
+import 'package:data_table/features/bulkProductUpload/data/models/product_category_model.dart';
 import 'package:data_table/features/bulkProductUpload/presentation/cubit/bulk_product_upload_cubit.dart';
 import 'package:data_table/features/bulkProductUpload/presentation/cubit/categories_cubit.dart';
-import 'package:data_table/features/bulkProductUpload/presentation/cubit/columns_cubit.dart';
-import 'package:data_table/features/bulkProductUpload/presentation/cubit/ui_app_states_cubit.dart';
+
+import 'package:data_table/features/bulkProductUpload/presentation/widgets/add_product_dialog.dart';
 import 'package:data_table/features/bulkProductUpload/presentation/widgets/menu_pop_up.dart';
 import 'package:data_table/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pluto_grid/pluto_grid.dart';
 
 /// [TableHeader] is a [StatelessWidget] that displays
 /// the header of the [DataTable] with various menu options
-class TableHeader extends StatelessWidget {
+class TableHeader extends StatefulWidget {
   /// constructor for [TableHeader]
-  const TableHeader({super.key});
+  const TableHeader({required this.stateManager, super.key});
+
+  /// pluto state manager
+  final PlutoGridStateManager stateManager;
 
   @override
+  State<TableHeader> createState() => _TableHeaderState();
+}
+
+class _TableHeaderState extends State<TableHeader> {
+  @override
   Widget build(BuildContext context) {
-    final columns = context.watch<ColumnsCubit>();
-    final showCheckBoxColumn = context.watch<CheckBoxSelectionCubit>().state;
-    // final products = context.read<BulkProductUploadCubit>().products;
     final categories = context.watch<CategoriesCubit>().state;
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      height: 200,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.blueGrey,
-        ),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(8),
-          topRight: Radius.circular(8),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomMenuPopUp(
-                menuChildren: categories
-                    .map(
-                      (c) => ExpansionTile(
-                        initiallyExpanded: true,
-                        title: Text(c.name.toUpperCase()),
-                        children: c.subCategories
-                            .map(
-                              (subCategory) => CheckboxListTile(
-                                contentPadding: const EdgeInsets.all(10),
-                                title: Text(
-                                  '${subCategory.name[0].toUpperCase()}${subCategory.name.substring(1)}',
-                                ),
-                                value: subCategory.isSelected,
-                                onChanged: (value) {
-                                  BlocProvider.of<CategoriesCubit>(context)
-                                      .toggleSubCategories(subCategory);
-                                  if (value != null) {
-                                    BlocProvider.of<BulkProductUploadCubit>(
-                                      context,
-                                    ).filterProducts(
-                                      subCategory,
-                                      isSelected: value,
-                                    );
-                                    if (value == false) {
-                                      // add back the whole  products back
-                                      //to the state
-                                      BlocProvider.of<BulkProductUploadCubit>(
-                                        context,
-                                      ).reset();
-                                    }
-                                  }
-                                },
-                              ),
-                            )
-                            .toList(),
-                      ),
-                    )
-                    .toList(),
-                title: 'Categories',
-                icon: Icons.filter_list,
-                label: 'Filters',
-              ),
-              CustomMenuPopUp(
-                menuChildren: [
-                  ...columns.state.map(
-                    (column) => CheckboxListTile(
-                      title: Text(getColumnName(column.name)),
-                      value: column.isVisible,
-                      enabled:
-                          // prevents from having columns < 1
-                          column.name != ProductColumnsEnum.productName.name,
-                      onChanged: (_) {
-                        BlocProvider.of<ColumnsCubit>(context)
-                            .toggleColumn(column);
-                      },
-                    ),
-                  ),
-                  CheckboxListTile(
-                    value: showCheckBoxColumn,
-                    onChanged: (_) {
-                      BlocProvider.of<CheckBoxSelectionCubit>(context).toggle();
-                    },
-                    title: const Text('Checkbox Selection'),
-                  ),
-                ],
-                title: 'Show Columns',
-                icon: Icons.visibility,
-                label: 'Columns',
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(
+    final products = context.watch<BulkProductUploadCubit>().products;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
                 child: TextFormField(
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.all(4),
@@ -134,28 +55,194 @@ class TableHeader extends StatelessWidget {
                     // reset the state if the search term is empty after search
 
                     if (searchTerm.trim().isEmpty) {
-                      BlocProvider.of<BulkProductUploadCubit>(context).reset();
+                      // will get initial products from the state
+                      final products =
+                          context.read<BulkProductUploadCubit>().products;
+                      widget.stateManager.removeAllRows();
+                      widget.stateManager.appendRows(
+                        products
+                            .map(
+                              addProductsToRow,
+                            )
+                            .toList(),
+                      );
                     }
                     if (searchTerm.trim().isNotEmpty) {
-                      BlocProvider.of<BulkProductUploadCubit>(context)
-                          .searchProductByName(searchTerm);
+                      setState(() {
+                        widget.stateManager.removeRows(
+                          searchProduct(
+                            searchTerm,
+                            widget.stateManager,
+                            context,
+                          ),
+                        );
+                      });
                     }
                   },
                 ),
               ),
-            ],
-          ),
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
             ),
-            child: const Text('SAVE'),
-          ),
-        ],
-      ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomMenuPopUp(
+              menuChildren: categories
+                  .map(
+                    (c) => ExpansionTile(
+                      initiallyExpanded: true,
+                      title: Text(c.name.toUpperCase()),
+                      children: c.subCategories
+                          .map(
+                            (subCategory) => CheckboxListTile(
+                              contentPadding: const EdgeInsets.all(10),
+                              title: Text(
+                                '${subCategory.name[0].toUpperCase()}${subCategory.name.substring(1)}',
+                              ),
+                              value: subCategory.isSelected,
+                              onChanged: (value) {
+                                BlocProvider.of<CategoriesCubit>(context)
+                                    .toggleSubCategories(subCategory);
+                                if (value != null) {
+                                  BlocProvider.of<BulkProductUploadCubit>(
+                                    context,
+                                  ).filterProducts(
+                                    subCategory,
+                                    isSelected: value,
+                                  );
+                                  setState(() {
+                                    widget.stateManager.removeAllRows();
+                                    widget.stateManager.appendRows(
+                                      filterProducts(
+                                        products,
+                                        subCategory,
+                                        isSelected: value,
+                                      ),
+                                    );
+                                  });
+
+                                  if (value == false) {
+                                    // add back the whole  products back
+                                    //to the state
+                                    BlocProvider.of<BulkProductUploadCubit>(
+                                      context,
+                                    ).reset();
+                                    widget.stateManager.removeAllRows();
+                                    widget.stateManager.appendRows(
+                                      products
+                                          .map(
+                                            addProductsToRow,
+                                          )
+                                          .toList(),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  )
+                  .toList(),
+              title: 'Categories',
+              icon: Icons.filter_list,
+              label: 'Filters',
+            ),
+            const SizedBox(width: 4),
+            CustomMenuPopUp(
+              menuChildren: [
+                ...uiColumns.map(
+                  (column) => CheckboxListTile(
+                    title: Text(column.title),
+                    value: column.hide,
+                    onChanged: (val) {
+                      setState(() {
+                        widget.stateManager.hideColumn(column, !column.hide);
+                      });
+                    },
+                  ),
+                ),
+              ],
+              title: 'Show Columns',
+              icon: Icons.visibility,
+              label: 'Columns',
+            ),
+            const SizedBox(width: 4),
+            OutlinedButton.icon(
+              onPressed: () async {
+                final newProduct = await addNewProduct(context: context);
+                if (newProduct != null && context.mounted) {
+                  BlocProvider.of<BulkProductUploadCubit>(context)
+                      .addProduct(newProduct);
+                  widget.stateManager
+                      .appendRows([addProductsToRow(newProduct)]);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              icon: const Icon(Icons.add),
+              label: const Text('add'),
+            ),
+          ],
+        ),
+        const SizedBox(
+          height: 8,
+        ),
+      ],
     );
   }
+}
+
+/// used to return a list of products that are not found
+/// after a search and then remove them from the state
+List<PlutoRow> searchProduct(
+  String searchTerm,
+  PlutoGridStateManager stateManager,
+  BuildContext context,
+) {
+  var notFoundProducts = <PlutoRow>[];
+  if (searchTerm.trim().isNotEmpty) {
+    notFoundProducts = stateManager.rows
+        .where(
+          (row) => !(row.cells['productName']?.value as String)
+              .toLowerCase()
+              .contains(searchTerm.toLowerCase()),
+        )
+        .toList();
+  }
+  return notFoundProducts;
+}
+
+/// filter products based on the subcategory and the value
+/// then return a list of [PlutoRow] to be added to the state
+List<PlutoRow> filterProducts(
+  List<BulkProductModel> products,
+  ProductSubCategory subCategory, {
+  required bool isSelected,
+}) {
+  final selectedProducts = products
+      .where(
+    (product) => product.category.subCategories.contains(subCategory),
+  )
+      .map((c) {
+    final newSubCategories = c.category.subCategories.map((sub) {
+      if (sub.id == subCategory.id) {
+        return sub.copyWith(isSelected: isSelected);
+      }
+      return sub;
+    }).toList();
+    final newCategories = c.category.copyWith(
+      subCategories: newSubCategories,
+    );
+    return c.copyWith(category: newCategories);
+  }).toList();
+  return selectedProducts
+      .map(
+        addProductsToRow,
+      )
+      .toList();
 }
